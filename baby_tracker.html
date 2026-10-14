@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Baby Log">
+  <title>Baby Log - Newborn Tracker</title>
+  <style>
+    :root {
+      --bg: #F8F9FA;
+      --card-bg: #FFFFFF;
+      --text: #1F2937;
+      --text-muted: #6B7280;
+      --primary: #4F46E5;
+      --primary-light: #EEF2FF;
+      --feed: #3B82F6;
+      --feed-light: #EFF6FF;
+      --diaper-wet: #06B6D4;
+      --diaper-wet-light: #ECFEFF;
+      --diaper-dirty: #D97706;
+      --diaper-dirty-light: #FEF3C7;
+      --sleep: #8B5CF6;
+      --sleep-light: #F5F3FF;
+      --other: #10B981;
+      --other-light: #ECFDF5;
+      --border: #E5E7EB;
+      --radius: 16px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding-bottom: 90px;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background: var(--card-bg);
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-title h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .header-title p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .header-actions button {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: none;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Container */
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* Summary Bar */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .summary-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .summary-card .icon {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .summary-card .value {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .summary-card .label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Action Buttons */
+    .action-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .quick-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 0.1s ease;
+    }
+
+    .quick-btn:active {
+      transform: scale(0.96);
+    }
+
+    .quick-btn .btn-icon {
+      font-size: 24px;
+    }
+
+    .quick-btn span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* Active Timers Banner */
+    .active-timers-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .timer-banner {
+      background: #FEF3C7;
+      border: 1px solid #FDE68A;
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: pulse-border 2s infinite;
+    }
+
+    @keyframes pulse-border {
+      0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+    }
+
+    .timer-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .timer-text h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #92400E;
+    }
+
+    .timer-clock {
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: #B45309;
+    }
+
+    .timer-stop-btn {
+      background: #D97706;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* Section Headers */
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+
+    .filter-pills::-webkit-scrollbar {
+      display: none;
+    }
+
+    .pill {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .pill.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Log Stream */
+    .log-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .log-item {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .log-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .icon-feed { background: var(--feed-light); color: var(--feed); }
+    .icon-wet { background: var(--diaper-wet-light); color: var(--diaper-wet); }
+    .icon-dirty { background: var(--diaper-dirty-light); color: var(--diaper-dirty); }
+    .icon-both { background: #FEF3C7; color: #D97706; }
+    .icon-sleep { background: var(--sleep-light); color: var(--sleep); }
+    .icon-other { background: var(--other-light); color: var(--other); }
+
+    .log-content {
+      flex: 1;
+    }
+
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .log-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .log-time {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .log-details {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .log-delete {
+      background: none;
+      border: none;
+      color: #9CA3AF;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px dashed var(--border);
+    }
+
+    /* Bottom Navigation */
+    nav.bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 70px;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+    }
+
+    /* Modal Sheet */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      justify-content: center;
+      align-items: flex-end;
+      z-index: 200;
+      backdrop-filter: blur(2px);
+    }
+
+    .modal-sheet {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 500px;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 24px 20px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: slide-up 0.25s ease-out;
+    }
+
+    @keyframes slide-up {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: #F3F4F6;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .segmented-control {
+      display: flex;
+      background: #F3F4F6;
+      padding: 4px;
+      border-radius: 12px;
+      gap: 4px;
+    }
+
+    .segmented-control button {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .segmented-control button.selected {
+      background: white;
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 15px;
+      background: white;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .nursing-live-box {
+      background: var(--feed-light);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .breast-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .breast-btn {
+      flex: 1;
+      padding: 12px;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .breast-btn.active {
+      border-color: var(--feed);
+      background: #DBEAFE;
+      color: #1D4ED8;
+    }
+
+    /* PWA Banner */
+    .ios-install-banner {
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      line-height: 1.4;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .ios-install-banner span.icon {
+      font-size: 20px;
+    }
+
+    .sync-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .sync-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .sync-badge.online {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="header-title">
+      <h1 id="babyNameHeader">Baby Log</h1>
+      <p id="currentDateHeader">Today</p>
+    </div>
+    <div class="header-actions">
+      <button onclick="openSyncModal()">⚡ Cloud Sync</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- iOS Add to Home Screen Hint -->
+    <div class="ios-install-banner" id="pwaBanner">
+      <span class="icon">📲</span>
+      <div>
+        <strong>Add to iPhone Home Screen:</strong> Open in Safari, tap the <strong>Share</strong> icon, and select <strong>"Add to Home Screen"</strong> for a full app experience!
+      </div>
+    </div>
+
+    <!-- Active Timers (Nursing or Sleep) -->
+    <div class="active-timers-container" id="activeTimers"></div>
+
+    <!-- Quick Action Buttons -->
+    <div class="action-row">
+      <button class="quick-btn" onclick="openDiaperModal()">
+        <span class="btn-icon">🧷</span>
+        <span>Diaper</span>
+      </button>
+      <button class="quick-btn" onclick="openFeedModal()">
+        <span class="btn-icon">🍼</span>
+        <span>Feeding</span>
+      </button>
+      <button class="quick-btn" onclick="openSleepModal()">
+        <span class="btn-icon">🌙</span>
+        <span>Sleep</span>
+      </button>
+      <button class="quick-btn" onclick="openOtherModal()">
+        <span class="btn-icon">⭐</span>
+        <span>Other</span>
+      </button>
+    </div>
+
+    <!-- Daily Summary Bar -->
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="icon">🍼</div>
+        <div class="value" id="summaryFeed">0</div>
+        <div class="label">Feeds</div>
+      </div>
+      <div class="summary-card">
+        <div class="icon">💧</div>
+        <div class="value" id="summaryWet">0</div>
+        <div class="label">Wet</div>
+      </div>
+      <div class="summary-card">
+        <div class="icon">💩</div>
+        <div class="value" id="summaryDirty">0</div>
+        <div class="label">Poop</div>
+      </div>
+      <div class="summary-card">
+        <div class="icon">🌙</div>
+        <div class="value" id="summarySleep">0h</div>
+        <div class="label">Sleep</div>
+      </div>
+    </div>
+
+    <!-- Activity Stream -->
+    <div class="section-title">
+      <span>Today's Log</span>
+      <span style="font-size: 13px; font-weight: normal; color: var(--text-muted);" id="lastEventTime"></span>
+    </div>
+
+    <div class="filter-pills">
+      <button class="pill active" onclick="setFilter('all', this)">All</button>
+      <button class="pill" onclick="setFilter('feed', this)">🍼 Feedings</button>
+      <button class="pill" onclick="setFilter('diaper', this)">🧷 Diapers</button>
+      <button class="pill" onclick="setFilter('sleep', this)">🌙 Sleep</button>
+      <button class="pill" onclick="setFilter('other', this)">⭐ Other</button>
+    </div>
+
+    <div class="log-stream" id="logList">
+      <!-- Populated via JS -->
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('log')">
+      <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span>Logs</span>
+    </button>
+    <button class="nav-item" onclick="exportDataPrompt()">
+      <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      <span>Export</span>
+    </button>
+    <button class="nav-item" onclick="openSettingsModal()">
+      <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <!-- Diaper Modal -->
+  <div class="modal-overlay" id="diaperModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3>Log Diaper Change</h3>
+        <button class="modal-close" onclick="closeModal('diaperModal')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <div class="segmented-control" id="diaperTypeControl">
+          <button type="button" class="selected" onclick="selectDiaperType('wet', this)">💧 Wet (Pee)</button>
+          <button type="button" onclick="selectDiaperType('dirty', this)">💩 Dirty (Poop)</button>
+          <button type="button" onclick="selectDiaperType('both', this)">✨ Both</button>
+        </div>
+      </div>
+      <div class="form-group" id="poopDetailsGroup" style="display: none;">
+        <label>Poop Texture / Color</label>
+        <div class="input-row">
+          <select id="poopTexture">
+            <option value="Seedy">Seedy</option>
+            <option value="Soft / Normal">Soft / Normal</option>
+            <option value="Liquid">Liquid</option>
+            <option value="Formed / Firm">Formed / Firm</option>
+            <option value="Mucousy">Mucousy</option>
+          </select>
+          <select id="poopColor">
+            <option value="Mustard Yellow">Mustard Yellow</option>
+            <option value="Yellow">Yellow</option>
+            <option value="Brown">Brown</option>
+            <option value="Green">Green</option>
+            <option value="Black (Meconium)">Black (Meconium)</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Time</label>
+        <input type="datetime-local" id="diaperTime">
+      </div>
+      <div class="form-group">
+        <label>Notes (optional)</label>
+        <input type="text" id="diaperNotes" placeholder="e.g. Diaper rash cream applied">
+      </div>
+      <button class="submit-btn" onclick="saveDiaperLog()">Save Diaper</button>
+    </div>
+  </div>
+
+  <!-- Feed Modal -->
+  <div class="modal-overlay" id="feedModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3>Log Feeding</h3>
+        <button class="modal-close" onclick="closeModal('feedModal')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Feeding Method</label>
+        <div class="segmented-control" id="feedMethodControl">
+          <button type="button" class="selected" onclick="selectFeedMethod('nursing', this)">🤱 Nursing</button>
+          <button type="button" onclick="selectFeedMethod('bottle', this)">🍼 Bottle</button>
+          <button type="button" onclick="selectFeedMethod('solids', this)">🥣 Solids</button>
+        </div>
+      </div>
+
+      <!-- Nursing Sub-form -->
+      <div id="nursingForm">
+        <div class="nursing-live-box">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Active Nursing Timer</p>
+          <div style="font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums;" id="nursingStopwatch">00:00</div>
+          <div class="breast-buttons">
+            <button type="button" class="breast-btn" id="leftBreastBtn" onclick="toggleNursingSide('left')">Left Breast</button>
+            <button type="button" class="breast-btn" id="rightBreastBtn" onclick="toggleNursingSide('right')">Right Breast</button>
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="form-group" style="flex: 1;">
+            <label>Left (min)</label>
+            <input type="number" id="nursingLeftMin" value="0" min="0">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Right (min)</label>
+            <input type="number" id="nursingRightMin" value="0" min="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottle Sub-form -->
+      <div id="bottleForm" style="display: none;">
+        <div class="input-row">
+          <div class="form-group" style="flex: 1;">
+            <label>Amount (oz)</label>
+            <input type="number" step="0.5" id="bottleAmount" placeholder="e.g. 3.5">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Type</label>
+            <select id="bottleType">
+              <option value="Breast Milk">Breast Milk</option>
+              <option value="Formula">Formula</option>
+              <option value="Mixed">Mixed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Solids Sub-form -->
+      <div id="solidsForm" style="display: none;">
+        <div class="form-group">
+          <label>Food Item</label>
+          <input type="text" id="solidsDesc" placeholder="e.g. Pureed avocado, oatmeal">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Time</label>
+        <input type="datetime-local" id="feedTime">
+      </div>
+      <div class="form-group">
+        <label>Notes (optional)</label>
+        <input type="text" id="feedNotes" placeholder="e.g. Burped well, spit up slightly">
+      </div>
+      <button class="submit-btn" onclick="saveFeedLog()">Save Feeding</button>
+    </div>
+  </div>
+
+  <!-- Sleep Modal -->
+  <div class="modal-overlay" id="sleepModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3>Log Sleep</h3>
+        <button class="modal-close" onclick="closeModal('sleepModal')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Quick Action</label>
+        <button type="button" class="submit-btn" style="background: var(--sleep); margin-bottom: 16px;" onclick="toggleLiveSleep()">
+          <span id="sleepTimerBtnText">⏱️ Start Live Sleep Timer</span>
+        </button>
+      </div>
+      <div class="form-group">
+        <label>Or Log Past Sleep (Duration in minutes)</label>
+        <input type="number" id="manualSleepMinutes" placeholder="e.g. 90 minutes (1.5 hrs)">
+      </div>
+      <div class="form-group">
+        <label>Wake Time</label>
+        <input type="datetime-local" id="sleepEndTime">
+      </div>
+      <div class="form-group">
+        <label>Sleep Quality / Location</label>
+        <select id="sleepLocation">
+          <option value="Crib / Bassinet">Crib / Bassinet</option>
+          <option value="Contact Nap">Contact Nap</option>
+          <option value="Stroller / Car">Stroller / Car</option>
+        </select>
+      </div>
+      <button class="submit-btn" onclick="saveManualSleepLog()">Save Sleep Record</button>
+    </div>
+  </div>
+
+  <!-- Other / Health Modal -->
+  <div class="modal-overlay" id="otherModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3>Log Tummy Time, Vitals & Notes</h3>
+        <button class="modal-close" onclick="closeModal('otherModal')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="otherCategory">
+          <option value="Tummy Time">Tummy Time</option>
+          <option value="Pumping">Pumping (Mom)</option>
+          <option value="Medicine / Vitamin">Medicine / Vitamin D</option>
+          <option value="Weight / Growth">Weight / Growth Check</option>
+          <option value="Bath / Milestone">Bath / Milestone</option>
+          <option value="General Note">General Note</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Value / Details</label>
+        <input type="text" id="otherDetails" placeholder="e.g. 15 min, 12 lbs 4 oz, or Vitamin drops">
+      </div>
+      <div class="form-group">
+        <label>Time</label>
+        <input type="datetime-local" id="otherTime">
+      </div>
+      <button class="submit-btn" onclick="saveOtherLog()">Save Record</button>
+    </div>
+  </div>
+
+  <!-- Cloud Sync & Settings Modal -->
+  <div class="modal-overlay" id="syncModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3>Sync with Wife's iPhone</h3>
+        <button class="modal-close" onclick="closeModal('syncModal')">&times;</button>
+      </div>
+      <div class="sync-card">
+        <span class="sync-badge online">How It Works</span>
+        <p style="font-size: 13px; line-height: 1.5; color: var(--text-muted); margin-bottom: 12px;">
+          For you and your wife to log data on two separate iPhones and have it sync in real-time, this app supports a <strong>Free Firebase Database</strong> (takes 2 minutes to create, 100% free forever for personal use).
+        </p>
+        <div class="form-group">
+          <label>Firebase Database URL (Optional)</label>
+          <input type="text" id="firebaseUrlInput" placeholder="https://my-baby-app-default-rtdb.firebaseio.com">
+        </div>
+        <div class="form-group">
+          <label>Pairing Secret Code</label>
+          <input type="text" id="familyCodeInput" placeholder="e.g. our-sweet-baby-2026">
+        </div>
+        <button class="submit-btn" onclick="saveSyncSettings()">Connect & Sync</button>
+      </div>
+
+      <div class="sync-card">
+        <h4 style="font-size: 14px; margin-bottom: 8px;">Backup & Share</h4>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+          You can also export logs to share with your pediatrician or air-drop a JSON backup directly to your wife's phone.
+        </p>
+        <div class="input-row">
+          <button type="button" class="quick-btn" style="flex:1" onclick="exportDataPrompt()">📤 Export JSON</button>
+          <button type="button" class="quick-btn" style="flex:1" onclick="document.getElementById('importFileInput').click()">📥 Import JSON</button>
+        </div>
+        <input type="file" id="importFileInput" style="display:none" onchange="importData(event)">
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3>App Settings</h3>
+        <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Baby's Name</label>
+        <input type="text" id="babyNameInput" placeholder="e.g. Maya">
+      </div>
+      <div class="form-group">
+        <label>Default Units</label>
+        <select id="unitsSelect">
+          <option value="oz">Ounces (oz) & Pounds (lbs)</option>
+          <option value="ml">Milliliters (ml) & Kilograms (kg)</option>
+        </select>
+      </div>
+      <button class="submit-btn" onclick="saveAppSettings()">Save Settings</button>
+      <button type="button" style="width: 100%; background: none; border: 1px solid #EF4444; color: #EF4444; padding: 12px; border-radius: 12px; margin-top: 14px; font-weight: 600;" onclick="clearAllData()">Clear All Local Logs</button>
+    </div>
+  </div>
+
+  <script>
+    // State Management
+    let state = {
+      babyName: localStorage.getItem('babyName') || 'Baby',
+      units: localStorage.getItem('units') || 'oz',
+      firebaseUrl: localStorage.getItem('firebaseUrl') || '',
+      familyCode: localStorage.getItem('familyCode') || 'family-log',
+      filter: 'all',
+      logs: JSON.parse(localStorage.getItem('babyLogs') || '[]'),
+      activeTimers: JSON.parse(localStorage.getItem('babyTimers') || '{}')
+    };
+
+    let selectedDiaperType = 'wet';
+    let selectedFeedMethod = 'nursing';
+    let activeNursingSide = null;
+    let nursingTimerInterval = null;
+    let nursingSeconds = 0;
+
+    // Initialize App
+    window.addEventListener('DOMContentLoaded', () => {
+      updateHeaderDate();
+      document.getElementById('babyNameHeader').innerText = state.babyName;
+      document.getElementById('babyNameInput').value = state.babyName;
+      document.getElementById('firebaseUrlInput').value = state.firebaseUrl;
+      document.getElementById('familyCodeInput').value = state.familyCode;
+      initDateTimePickers();
+      renderActiveTimers();
+      renderLogs();
+      updateSummaries();
+      setupLiveSync();
+    });
+
+    function updateHeaderDate() {
+      const options = { weekday: 'short', month: 'short', day: 'numeric' };
+      document.getElementById('currentDateHeader').innerText = new Date().toLocaleDateString(undefined, options);
+    }
+
+    function initDateTimePickers() {
+      const now = new Date();
+      const localIso = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+      ['diaperTime', 'feedTime', 'sleepEndTime', 'otherTime'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = localIso;
+      });
+    }
+
+    // Modal helpers
+    function openModal(id) {
+      initDateTimePickers();
+      document.getElementById(id).style.display = 'flex';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function openDiaperModal() { openModal('diaperModal'); }
+    function openFeedModal() { openModal('feedModal'); }
+    function openSleepModal() { openModal('sleepModal'); }
+    function openOtherModal() { openModal('otherModal'); }
+    function openSyncModal() { openModal('syncModal'); }
+    function openSettingsModal() { openModal('settingsModal'); }
+
+    // Segmented Controls
+    function selectDiaperType(type, btn) {
+      selectedDiaperType = type;
+      btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const poopGroup = document.getElementById('poopDetailsGroup');
+      poopGroup.style.display = (type === 'dirty' || type === 'both') ? 'block' : 'none';
+    }
+
+    function selectFeedMethod(method, btn) {
+      selectedFeedMethod = method;
+      btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('nursingForm').style.display = (method === 'nursing') ? 'block' : 'none';
+      document.getElementById('bottleForm').style.display = (method === 'bottle') ? 'block' : 'none';
+      document.getElementById('solidsForm').style.display = (method === 'solids') ? 'block' : 'none';
+    }
+
+    // Nursing Timer
+    function toggleNursingSide(side) {
+      const leftBtn = document.getElementById('leftBreastBtn');
+      const rightBtn = document.getElementById('rightBreastBtn');
+
+      if (activeNursingSide === side) {
+        // Pause timer
+        clearInterval(nursingTimerInterval);
+        activeNursingSide = null;
+        leftBtn.classList.remove('active');
+        rightBtn.classList.remove('active');
+      } else {
+        // Start or switch side
+        activeNursingSide = side;
+        leftBtn.classList.toggle('active', side === 'left');
+        rightBtn.classList.toggle('active', side === 'right');
+
+        clearInterval(nursingTimerInterval);
+        nursingTimerInterval = setInterval(() => {
+          nursingSeconds++;
+          const mins = Math.floor(nursingSeconds / 60);
+          const secs = nursingSeconds % 60;
+          document.getElementById('nursingStopwatch').innerText = 
+            `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+          
+          if (side === 'left') {
+            document.getElementById('nursingLeftMin').value = mins;
+          } else {
+            document.getElementById('nursingRightMin').value = mins;
+          }
+        }, 1000);
+      }
+    }
+
+    // Save Logs
+    function saveDiaperLog() {
+      const time = document.getElementById('diaperTime').value;
+      const notes = document.getElementById('diaperNotes').value.trim();
+      let details = '';
+
+      if (selectedDiaperType === 'wet') {
+        details = 'Wet diaper';
+      } else if (selectedDiaperType === 'dirty') {
+        const tex = document.getElementById('poopTexture').value;
+        const col = document.getElementById('poopColor').value;
+        details = `Poop (${tex}, ${col})`;
+      } else {
+        const tex = document.getElementById('poopTexture').value;
+        const col = document.getElementById('poopColor').value;
+        details = `Wet + Poop (${tex}, ${col})`;
+      }
+
+      if (notes) details += ` • ${notes}`;
+
+      const log = {
+        id: 'log_' + Date.now(),
+        category: 'diaper',
+        subType: selectedDiaperType,
+        title: selectedDiaperType === 'wet' ? 'Wet Diaper' : (selectedDiaperType === 'dirty' ? 'Dirty Diaper' : 'Wet & Dirty Diaper'),
+        details: details,
+        timestamp: new Date(time).getTime(),
+        createdAt: Date.now()
+      };
+
+      addLog(log);
+      closeModal('diaperModal');
+      document.getElementById('diaperNotes').value = '';
+    }
+
+    function saveFeedLog() {
+      const time = document.getElementById('feedTime').value;
+      const notes = document.getElementById('feedNotes').value.trim();
+      let title = '';
+      let details = '';
+
+      if (selectedFeedMethod === 'nursing') {
+        const left = parseInt(document.getElementById('nursingLeftMin').value || 0);
+        const right = parseInt(document.getElementById('nursingRightMin').value || 0);
+        const total = left + right;
+        title = `Nursing (${total}m)`;
+        details = `Left: ${left}m, Right: ${right}m`;
+        // Stop timer
+        clearInterval(nursingTimerInterval);
+        activeNursingSide = null;
+        nursingSeconds = 0;
+        document.getElementById('nursingStopwatch').innerText = '00:00';
+      } else if (selectedFeedMethod === 'bottle') {
+        const amount = document.getElementById('bottleAmount').value || '0';
+        const type = document.getElementById('bottleType').value;
+        title = `Bottle Feed (${amount} ${state.units})`;
+        details = `${type} • ${amount} ${state.units}`;
+      } else {
+        const food = document.getElementById('solidsDesc').value || 'Solids';
+        title = `Solids: ${food}`;
+        details = food;
+      }
+
+      if (notes) details += ` • ${notes}`;
+
+      const log = {
+        id: 'log_' + Date.now(),
+        category: 'feed',
+        subType: selectedFeedMethod,
+        title: title,
+        details: details,
+        timestamp: new Date(time).getTime(),
+        createdAt: Date.now()
+      };
+
+      addLog(log);
+      closeModal('feedModal');
+      document.getElementById('feedNotes').value = '';
+    }
+
+    function saveManualSleepLog() {
+      const mins = parseInt(document.getElementById('manualSleepMinutes').value || 0);
+      const wakeTime = document.getElementById('sleepEndTime').value;
+      const location = document.getElementById('sleepLocation').value;
+
+      if (!mins || mins <= 0) {
+        alert('Please enter a duration in minutes.');
+        return;
+      }
+
+      const hrs = Math.floor(mins / 60);
+      const remMins = mins % 60;
+      const durationStr = hrs > 0 ? `${hrs}h ${remMins}m` : `${remMins}m`;
+
+      const log = {
+        id: 'log_' + Date.now(),
+        category: 'sleep',
+        subType: 'manual',
+        title: `Sleep (${durationStr})`,
+        details: `${location} • Duration: ${durationStr}`,
+        durationMinutes: mins,
+        timestamp: new Date(wakeTime).getTime(),
+        createdAt: Date.now()
+      };
+
+      addLog(log);
+      closeModal('sleepModal');
+      document.getElementById('manualSleepMinutes').value = '';
+    }
+
+    // Live Sleep Timer
+    function toggleLiveSleep() {
+      if (state.activeTimers.sleep) {
+        // Stop active sleep
+        const startTime = state.activeTimers.sleep.startTime;
+        const durationMins = Math.round((Date.now() - startTime) / 60000) || 1;
+        const hrs = Math.floor(durationMins / 60);
+        const remMins = durationMins % 60;
+        const durationStr = hrs > 0 ? `${hrs}h ${remMins}m` : `${remMins}m`;
+
+        const log = {
+          id: 'log_' + Date.now(),
+          category: 'sleep',
+          subType: 'live',
+          title: `Sleep (${durationStr})`,
+          details: `Fell asleep at ${new Date(startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`,
+          durationMinutes: durationMins,
+          timestamp: Date.now(),
+          createdAt: Date.now()
+        };
+
+        delete state.activeTimers.sleep;
+        localStorage.setItem('babyTimers', JSON.stringify(state.activeTimers));
+        addLog(log);
+        renderActiveTimers();
+        closeModal('sleepModal');
+      } else {
+        // Start sleep timer
+        state.activeTimers.sleep = { startTime: Date.now() };
+        localStorage.setItem('babyTimers', JSON.stringify(state.activeTimers));
+        renderActiveTimers();
+        closeModal('sleepModal');
+      }
+    }
+
+    function renderActiveTimers() {
+      const container = document.getElementById('activeTimers');
+      container.innerHTML = '';
+
+      if (state.activeTimers.sleep) {
+        const start = state.activeTimers.sleep.startTime;
+        const banner = document.createElement('div');
+        banner.className = 'timer-banner';
+        banner.innerHTML = `
+          <div class="timer-info">
+            <span style="font-size: 24px;">🌙</span>
+            <div class="timer-text">
+              <h4>Baby is Sleeping...</h4>
+              <div class="timer-clock" id="liveSleepClock">00:00:00</div>
+            </div>
+          </div>
+          <button class="timer-stop-btn" onclick="toggleLiveSleep()">Woke Up</button>
+        `;
+        container.appendChild(banner);
+
+        setInterval(() => {
+          const diff = Math.floor((Date.now() - start) / 1000);
+          const h = Math.floor(diff / 3600);
+          const m = Math.floor((diff % 3600) / 60);
+          const s = diff % 60;
+          const clock = document.getElementById('liveSleepClock');
+          if (clock) clock.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }, 1000);
+      }
+    }
+
+    function saveOtherLog() {
+      const category = document.getElementById('otherCategory').value;
+      const details = document.getElementById('otherDetails').value.trim();
+      const time = document.getElementById('otherTime').value;
+
+      const log = {
+        id: 'log_' + Date.now(),
+        category: 'other',
+        subType: category,
+        title: category,
+        details: details || 'Recorded',
+        timestamp: new Date(time).getTime(),
+        createdAt: Date.now()
+      };
+
+      addLog(log);
+      closeModal('otherModal');
+      document.getElementById('otherDetails').value = '';
+    }
+
+    // Add and Sync Log
+    function addLog(log) {
+      state.logs.unshift(log);
+      localStorage.setItem('babyLogs', JSON.stringify(state.logs));
+      renderLogs();
+      updateSummaries();
+      syncLogToCloud(log);
+    }
+
+    function deleteLog(id) {
+      if (confirm('Delete this record?')) {
+        state.logs = state.logs.filter(l => l.id !== id);
+        localStorage.setItem('babyLogs', JSON.stringify(state.logs));
+        renderLogs();
+        updateSummaries();
+        deleteLogFromCloud(id);
+      }
+    }
+
+    function setFilter(filter, btn) {
+      state.filter = filter;
+      document.querySelectorAll('.filter-pills .pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      renderLogs();
+    }
+
+    function renderLogs() {
+      const list = document.getElementById('logList');
+      list.innerHTML = '';
+
+      let filtered = state.logs;
+      if (state.filter !== 'all') {
+        filtered = filtered.filter(l => l.category === state.filter);
+      }
+
+      if (filtered.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <p style="font-size: 28px; margin-bottom: 8px;">🍼</p>
+            <p style="font-weight: 600;">No logs yet</p>
+            <p style="font-size: 13px; margin-top: 4px;">Tap a button above to record your baby's first diaper or feed!</p>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(log => {
+        const item = document.createElement('div');
+        item.className = 'log-item';
+
+        let iconEmoji = '📝';
+        let iconClass = 'icon-other';
+
+        if (log.category === 'feed') {
+          iconEmoji = '🍼';
+          iconClass = 'icon-feed';
+        } else if (log.category === 'diaper') {
+          if (log.subType === 'wet') { iconEmoji = '💧'; iconClass = 'icon-wet'; }
+          else if (log.subType === 'dirty') { iconEmoji = '💩'; iconClass = 'icon-dirty'; }
+          else { iconEmoji = '✨'; iconClass = 'icon-both'; }
+        } else if (log.category === 'sleep') {
+          iconEmoji = '🌙';
+          iconClass = 'icon-sleep';
+        }
+
+        const date = new Date(log.timestamp);
+        const timeStr = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+        item.innerHTML = `
+          <div class="log-icon-wrap ${iconClass}">${iconEmoji}</div>
+          <div class="log-content">
+            <div class="log-header">
+              <span class="log-title">${log.title}</span>
+              <span class="log-time">${timeStr}</span>
+            </div>
+            <div class="log-details">${log.details}</div>
+          </div>
+          <button class="log-delete" onclick="deleteLog('${log.id}')">&times;</button>
+        `;
+        list.appendChild(item);
+      });
+
+      if (state.logs.length > 0) {
+        const last = state.logs[0];
+        const lastDate = new Date(last.timestamp);
+        document.getElementById('lastEventTime').innerText = `Last: ${lastDate.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}`;
+      }
+    }
+
+    function updateSummaries() {
+      // Filter for today
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const todayMs = today.getTime();
+
+      const todayLogs = state.logs.filter(l => l.timestamp >= todayMs);
+
+      let feeds = 0;
+      let wet = 0;
+      let dirty = 0;
+      let sleepMins = 0;
+
+      todayLogs.forEach(l => {
+        if (l.category === 'feed') feeds++;
+        if (l.category === 'diaper') {
+          if (l.subType === 'wet' || l.subType === 'both') wet++;
+          if (l.subType === 'dirty' || l.subType === 'both') dirty++;
+        }
+        if (l.category === 'sleep' && l.durationMinutes) {
+          sleepMins += l.durationMinutes;
+        }
+      });
+
+      document.getElementById('summaryFeed').innerText = feeds;
+      document.getElementById('summaryWet').innerText = wet;
+      document.getElementById('summaryDirty').innerText = dirty;
+
+      const sleepHrs = (sleepMins / 60).toFixed(1);
+      document.getElementById('summarySleep').innerText = `${sleepHrs}h`;
+    }
+
+    // Cloud Sync logic via Firebase Realtime Database REST API (No SDK needed!)
+    function setupLiveSync() {
+      if (!state.firebaseUrl) return;
+      const cleanUrl = state.firebaseUrl.replace(/\/$/, '');
+      const pollUrl = `${cleanUrl}/baby_logs/${state.familyCode}.json`;
+
+      // Initial fetch from cloud
+      fetch(pollUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (data && typeof data === 'object') {
+            const cloudLogs = Object.values(data);
+            mergeCloudLogs(cloudLogs);
+          }
+        })
+        .catch(err => console.log('Sync fetch error:', err));
+
+      // Periodic check every 20 seconds for partner updates
+      setInterval(() => {
+        if (!state.firebaseUrl) return;
+        fetch(pollUrl)
+          .then(res => res.json())
+          .then(data => {
+            if (data && typeof data === 'object') {
+              mergeCloudLogs(Object.values(data));
+            }
+          })
+          .catch(() => {});
+      }, 20000);
+    }
+
+    function mergeCloudLogs(cloudLogs) {
+      let changed = false;
+      const existingIds = new Set(state.logs.map(l => l.id));
+
+      cloudLogs.forEach(log => {
+        if (!existingIds.has(log.id)) {
+          state.logs.push(log);
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        state.logs.sort((a,b) => b.timestamp - a.timestamp);
+        localStorage.setItem('babyLogs', JSON.stringify(state.logs));
+        renderLogs();
+        updateSummaries();
+      }
+    }
+
+    function syncLogToCloud(log) {
+      if (!state.firebaseUrl) return;
+      const cleanUrl = state.firebaseUrl.replace(/\/$/, '');
+      const pushUrl = `${cleanUrl}/baby_logs/${state.familyCode}/${log.id}.json`;
+
+      fetch(pushUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(log)
+      }).catch(err => console.error('Cloud sync error:', err));
+    }
+
+    function deleteLogFromCloud(id) {
+      if (!state.firebaseUrl) return;
+      const cleanUrl = state.firebaseUrl.replace(/\/$/, '');
+      const delUrl = `${cleanUrl}/baby_logs/${state.familyCode}/${id}.json`;
+      fetch(delUrl, { method: 'DELETE' }).catch(() => {});
+    }
+
+    function saveSyncSettings() {
+      state.firebaseUrl = document.getElementById('firebaseUrlInput').value.trim();
+      state.familyCode = document.getElementById('familyCodeInput').value.trim() || 'family-log';
+      localStorage.setItem('firebaseUrl', state.firebaseUrl);
+      localStorage.setItem('familyCode', state.familyCode);
+      closeModal('syncModal');
+      alert('Sync settings saved! Connecting to cloud...');
+      setupLiveSync();
+    }
+
+    function saveAppSettings() {
+      state.babyName = document.getElementById('babyNameInput').value.trim() || 'Baby';
+      state.units = document.getElementById('unitsSelect').value;
+      localStorage.setItem('babyName', state.babyName);
+      localStorage.setItem('units', state.units);
+      document.getElementById('babyNameHeader').innerText = state.babyName;
+      closeModal('settingsModal');
+    }
+
+    function clearAllData() {
+      if (confirm('Are you sure you want to erase all baby records on this device?')) {
+        state.logs = [];
+        localStorage.removeItem('babyLogs');
+        renderLogs();
+        updateSummaries();
+        closeModal('settingsModal');
+      }
+    }
+
+    // Export & Import
+    function exportDataPrompt() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.logs, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `baby_logs_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            mergeCloudLogs(imported);
+            alert(`Imported ${imported.length} logs successfully!`);
+          } else {
+            alert('Invalid log file format.');
+          }
+        } catch(err) {
+          alert('Error reading JSON file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
